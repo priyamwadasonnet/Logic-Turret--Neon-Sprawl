@@ -1,0 +1,1384 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Logic Turret — Neon Sprawl</title>
+    <style>
+        body {
+            margin: 0;
+            background: radial-gradient(ellipse 120% 80% at 50% 120%, #1a0a2e 0%, #0d0221 45%, #050508 100%);
+            color: #e8e0ff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+        }
+
+        .ui-corner {
+            position: absolute;
+            pointer-events: none;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .ui-corner>* {
+            pointer-events: auto;
+        }
+
+        #ui-top-left {
+            top: 15px;
+            left: 15px;
+        }
+
+        #ui-bottom-left {
+            bottom: 15px;
+            left: 15px;
+        }
+
+        #ui-top-right {
+            top: 15px;
+            right: 15px;
+        }
+
+        #ui-bottom-right {
+            bottom: 15px;
+            right: 15px;
+        }
+
+        .panel {
+            background: rgba(12, 4, 28, 0.72);
+            backdrop-filter: blur(10px);
+            padding: 10px;
+            border: 1px solid rgba(255, 0, 234, 0.35);
+            border-radius: 4px;
+            box-shadow:
+                0 0 20px rgba(255, 0, 234, 0.12),
+                inset 0 0 24px rgba(0, 255, 255, 0.04);
+            font-size: 12px;
+        }
+
+        .panel-title {
+            font-size: 10px;
+            color: #ff4eea;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-shadow: 0 0 8px rgba(255, 0, 234, 0.45);
+        }
+
+        button {
+            margin: 2px 1px;
+            padding: 4px 6px;
+            font-size: 11px;
+            cursor: pointer;
+            background: rgba(0, 0, 0, 0.25);
+            border: 1px solid rgba(0, 255, 255, 0.25);
+            color: #b8f8ff;
+            border-radius: 3px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: all 0.2s ease;
+        }
+
+        button:hover:not(:disabled) {
+            background: rgba(0, 255, 255, 0.12);
+            border-color: #0ff;
+            box-shadow: 0 0 12px rgba(0, 255, 255, 0.35);
+            color: #fff;
+        }
+
+        button:active {
+            transform: translateY(1px);
+        }
+
+        button:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .btn-upgrade {
+            border-color: rgba(255, 0, 255, 0.4);
+            color: #f0f;
+        }
+
+        .btn-upgrade:hover:not(:disabled) {
+            border-color: #f0f;
+            box-shadow: 0 0 8px rgba(255, 0, 255, 0.5);
+        }
+
+        .btn-repair {
+            border-color: rgba(255, 68, 68, 0.4);
+            color: #f44;
+        }
+
+        .btn-repair:hover:not(:disabled) {
+            border-color: #f44;
+            box-shadow: 0 0 8px rgba(255, 68, 68, 0.5);
+        }
+
+        .btn-start {
+            background: rgba(0, 255, 0, 0.1);
+            border-color: #0f0;
+            color: #0f0;
+            font-size: 11px;
+            padding: 5px 10px;
+            box-shadow: 0 0 5px rgba(0, 255, 0, 0.2);
+        }
+
+        .btn-start:hover {
+            background: rgba(0, 255, 0, 0.3);
+            box-shadow: 0 0 12px rgba(0, 255, 0, 0.5);
+            color: #fff;
+        }
+
+        button.mod-shotgun {
+            border-color: rgba(255, 136, 0, 0.5);
+            color: #ff8800;
+        }
+
+        button.mod-shotgun:hover {
+            border-color: #ff8800;
+            box-shadow: 0 0 8px #ff8800;
+            color: #fff;
+        }
+
+        button.mod-cannon {
+            border-color: rgba(255, 68, 0, 0.5);
+            color: #ff4400;
+        }
+
+        button.mod-cannon:hover {
+            border-color: #ff4400;
+            box-shadow: 0 0 8px #ff4400;
+            color: #fff;
+        }
+
+        button.mod-laser {
+            border-color: rgba(0, 255, 255, 0.5);
+            color: #00ffff;
+        }
+
+        button.mod-laser:hover {
+            border-color: #00ffff;
+            box-shadow: 0 0 8px #00ffff;
+            color: #fff;
+        }
+
+        button.mod-tesla {
+            border-color: rgba(255, 255, 0, 0.5);
+            color: #ffff00;
+        }
+
+        button.mod-tesla:hover {
+            border-color: #ffff00;
+            box-shadow: 0 0 8px #ffff00;
+            color: #fff;
+        }
+
+        button.mod-multi {
+            border-color: rgba(0, 255, 136, 0.5);
+            color: #00ff88;
+        }
+
+        button.mod-multi:hover {
+            border-color: #00ff88;
+            box-shadow: 0 0 8px #00ff88;
+            color: #fff;
+        }
+
+        button.mod-time {
+            border-color: rgba(255, 0, 255, 0.5);
+            color: #ff00ff;
+        }
+
+        button.mod-time:hover {
+            border-color: #ff00ff;
+            box-shadow: 0 0 8px #ff00ff;
+            color: #fff;
+        }
+
+        canvas {
+            background: #060010;
+            display: block;
+            cursor: crosshair;
+        }
+
+        #overlay {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #f0e8ff;
+            background: rgba(8, 0, 18, 0.92);
+            visibility: hidden;
+            pointer-events: none;
+            z-index: 100;
+            backdrop-filter: blur(12px);
+        }
+
+        #overlay h1 {
+            color: #ff00cc;
+            text-shadow: 0 0 20px rgba(255, 0, 204, 0.8), 0 0 40px rgba(0, 255, 255, 0.35);
+        }
+
+        #overlay.active {
+            visibility: visible;
+            pointer-events: auto;
+        }
+
+        #stats {
+            min-width: 140px;
+        }
+
+        .stat-item {
+            margin-bottom: 6px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #abc;
+        }
+
+        .stat-val {
+            font-weight: bold;
+            color: #00fff2;
+            text-shadow: 0 0 8px rgba(0, 255, 255, 0.65);
+            margin-left: 10px;
+        }
+
+        #controls-hint {
+            position: absolute;
+            bottom: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 11px;
+            opacity: 0.55;
+            pointer-events: none;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #9a90c0;
+            text-shadow: 0 0 12px rgba(0, 255, 242, 0.25);
+        }
+    </style>
+</head>
+
+<body>
+    <div id="ui-top-left" class="ui-corner">
+        <div class="panel">
+            <div class="panel-title">SYSTEM COMMANDS</div>
+            <button onclick="setPhase('planning')">🔧 Planning</button>
+            <button class="btn-start" onclick="setPhase('action')">⚔️ Start Wave</button>
+            <button onclick="restartGame()">↻ Restart</button>
+        </div>
+        <div class="panel">
+            <div class="panel-title">BASE INTEGRITY</div>
+            <button id="btn-hp-upgrade" class="btn-upgrade" onclick="upgradeHealth()">+HP Tier (<span
+                    id="hp-tier">1</span>/10) - $<span id="hp-cost">5</span></button>
+            <button class="btn-repair" onclick="repairTurret()">Repair ($20)</button>
+            <div style="margin-top:6px; font-size: 1.1em; color:#ddd; font-weight:bold;">Gold: <span id="gold"
+                    style="color:gold; text-shadow:0 0 5px gold;">60</span></div>
+            <div style="color:#f44; font-size:11px; margin-top:2px;">Wave: <span id="wave-val">1</span> | Integrity:
+                <span id="hp-val">100</span> / <span id="hp-max">100</span>
+            </div>
+        </div>
+    </div>
+
+    <div id="ui-bottom-left" class="ui-corner">
+        <div class="panel">
+            <div class="panel-title">LOGIC COMPONENTS</div>
+            <button id="btn-Number" onclick="buyNode('Number')">Number ($2+V)</button>
+            <button id="btn-Add" onclick="buyNode('Add')">Add ($3)</button>
+            <button id="btn-Divide" onclick="buyNode('Divide')">Divide ($4)</button>
+            <button id="btn-Multiply" onclick="buyNode('Multiply')">Multiply ($5)</button>
+        </div>
+    </div>
+
+    <div id="ui-bottom-right" class="ui-corner">
+        <div class="panel">
+            <div class="panel-title">WEAPON SYSTEMS</div>
+            <button class="mod-shotgun" onclick="buyNode('Shotgun')"
+                title="ARCHETYPE: Brawler&#10;PRO: 8 Pellets, +50% DMG/Pellet&#10;CON: -60% Fire Rate, -60% Range">Shotgun
+                ($35)</button>
+            <button class="mod-cannon" onclick="buyNode('Cannon')"
+                title="ARCHETYPE: Artillery&#10;PRO: Huge Splash Area, +300% DMG, +20% Range&#10;CON: -85% Fire Rate, Slow projectiles">Cannon
+                ($50)</button>
+            <button class="mod-multi" onclick="buyNode('Multi')"
+                title="ARCHETYPE: Swarm&#10;PRO: Targets 3 enemies independently, +50% Fire Rate&#10;CON: -50% DMG">Multi
+                ($65)</button>
+            <button class="mod-time" onclick="buyNode('Time')"
+                title="ARCHETYPE: Support&#10;PRO: Heavily slows 10 enemies, +50% Range, +100% Fire Rate&#10;CON: ZERO damage">Time
+                ($80)</button>
+            <button class="mod-tesla" onclick="buyNode('Tesla')"
+                title="ARCHETYPE: Interceptor&#10;PRO: Chains 10 Targets, +200% Fire Rate, Anti-shield&#10;CON: -90% DMG, -20% Range">Tesla
+                ($110)</button>
+            <button class="mod-laser" onclick="buyNode('Laser')"
+                title="ARCHETYPE: Sniper&#10;PRO: Piercing ray, +900% DMG, +150% Range, Anti-shield&#10;CON: -90% Fire Rate">Laser
+                ($150)</button>
+        </div>
+    </div>
+
+    <div id="ui-top-right" class="ui-corner">
+        <div class="panel" id="stats">
+            <div class="panel-title">TURRET TELEMETRY</div>
+            <div class="stat-item">Damage: <span id="dmg" class="stat-val">0</span></div>
+            <div class="stat-item">RPM: <span id="rpm" class="stat-val">0</span></div>
+            <div class="stat-item">Range: <span id="range" class="stat-val">0</span></div>
+            <hr style="border:0; border-top:1px solid rgba(255, 0, 234, 0.25)">
+            <div class="stat-item" style="color:#a0f">Active Mod: <span id="mod-active" class="stat-val">None</span>
+            </div>
+        </div>
+    </div>
+
+    <div id="controls-hint">Wheel: Zoom | Mid-Click: Pan | Right-Click: Delete/Sell | Logic: Drag wires from GREEN
+        output to RED inputs</div>
+
+    <div id="overlay">
+        <h1>SYSTEM CRITICAL</h1>
+        <p>The logic core has been breached.</p>
+        <button onclick="restartGame()"
+            style="padding: 15px 30px; font-size: 20px; border: 2px solid white; background: transparent; color: white;">REBOOT
+            INITIALIZE</button>
+    </div>
+
+    <canvas id="game"></canvas>
+
+    <script>
+        const canvas = document.getElementById("game");
+        const ctx = canvas.getContext("2d");
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        // --- CONFIG & THEMES ---
+        const MOD_DATA = {
+            'Shotgun': { color: '#ff8800', bulletType: 'pellet' },
+            'Cannon': { color: '#ff4400', bulletType: 'heavy' },
+            'Laser': { color: '#00ffff', bulletType: 'beam' },
+            'Tesla': { color: '#ffff00', bulletType: 'bolt' },
+            'Multi': { color: '#00ff88', bulletType: 'rapid' },
+            'Time': { color: '#ff00ff', bulletType: 'void' },
+            'None': { color: '#00ffff', bulletType: 'normal' }
+        };
+
+        // Pixel sprites: human operator + robot drones (walk frame 1 = alternate legs)
+        const PX = {
+            // Cute chibi operator: full body top→bottom (head, jacket, legs, boots). 18×10 px art.
+            humanIdle: [
+                '......kkkkkk......',
+                '.....khh..hhk.....',
+                '.....khOeeOhk.....',
+                '.....k.uuuu.k.....',
+                '.....jjssssjj.....',
+                '.....jnnGgnnj.....',
+                '.....jmmmmmmj.....',
+                '......ll..ll......',
+                '......ll..ll......',
+                '......bb..bb......',
+            ],
+            humanAim: [
+                '......kkkkkk......',
+                '.....khh..hhk.....',
+                '.....khOeeOhk.....',
+                '.....k.uuuu.k.....',
+                '.....jjssssjj.....',
+                '.....jssssssj.....',
+                '.....jnhhhhnj.....',
+                '......ll..ll......',
+                '.....ll....ll.....',
+                '......bb..bb......',
+            ],
+            botGrunt: [
+                '....GGG....',
+                '...GrrrG...',
+                '..GobbboG..',
+                '..obSSSbo..',
+                '..obBBBbo..',
+                '...bpppbb..',
+            ],
+            botGruntW1: [
+                '....GGG....',
+                '...GrrrG...',
+                '..GobbboG..',
+                '..obSSSbo..',
+                '..obBBBbo..',
+                '...bpbpbb..',
+            ],
+            botTank: [
+                'DDDDDDDDDDDD',
+                'DDooooooooDD',
+                'DDoRRRRRRooD',
+                'DoBBBBBBBBoD',
+                'DDooBBBBooDD',
+                'DDDoopppooDD',
+            ],
+            botTankW1: [
+                'DDDDDDDDDDDD',
+                'DDooooooooDD',
+                'DDoRRRRRRooD',
+                'DoBBBBBBBBoD',
+                'DDooBBBBooDD',
+                'DDDoopopooDD',
+            ],
+            botSpeeder: [
+                '...yyy..',
+                '.yyYYyy.',
+                '.oBSSBo.',
+                '..BsSB..',
+                '..spps..',
+            ],
+            botSpeederW1: [
+                '...yyy..',
+                '.yyYYyy.',
+                '.oBSSBo.',
+                '..BsSB..',
+                '..spsp..',
+            ],
+            botSplitter: [
+                '.o......o.',
+                'oPPssssPPo',
+                '.PBBBBBBP.',
+                '..BBBBBB..',
+                '..BBssBB..',
+                '...pppp...',
+            ],
+            botSplitterW1: [
+                '.o......o.',
+                'oPPssssPPo',
+                '.PBBBBBBP.',
+                '..BBBBBB..',
+                '..BBssBB..',
+                '..pp..pp..',
+            ],
+        };
+
+        // Small gun silhouettes (drawn in screen space, rotated toward target)
+        const GUN_PX = {
+            None: { rows: ['...ss', '..SSs', '..SSs', '...ss'], grip: { x: 0, y: 1 } },
+            Shotgun: { rows: ['..ssss', '.sSSSs', '.sSSSs', '..ss.s', '...s..'], grip: { x: 0, y: 2 } },
+            Cannon: { rows: ['....SS', '...SSS', '..SSSS', '.SSS..', '.ss...'], grip: { x: 0, y: 2 } },
+            Laser: { rows: ['...lll', '..LLLL', '.LLLLL', '..LLLL', '...lll'], grip: { x: 0, y: 2 } },
+            Tesla: { rows: ['...z..', '..ZzZ.', '.ZzZzZ', '..ZzZ.', '...z..'], grip: { x: 0, y: 2 } },
+            Multi: { rows: ['..sss', '.SsSsS', 'Ss.S.Ss', '.SsSsS', '..sss'], grip: { x: 0, y: 2 } },
+            Time: { rows: ['...dD', '..DdDd', '.DdDdD', '..DdDd', '...dD'], grip: { x: 0, y: 2 } },
+        };
+
+        const PAL = {
+            human: {
+                k: '#5c3d7a', h: '#e8b89a', j: '#140a22', M: '#ff00c8', n: '#00fff2', b: '#3d2860',
+                O: '#fff8f5', e: '#4a3020', u: '#ff7eb3', m: '#0f0818', l: '#6b4f8c', s: '#1c0f2e',
+                G: '#6a7088',
+            },
+            grunt: { G: '#322a48', r: '#ff2d6a', o: '#5c566c', b: '#383e4a', S: '#00fff2', B: '#7d6e8c', p: '#252030' },
+            tank: { D: '#241a38', o: '#6a6878', R: '#ff3300', B: '#3d4a62', b: '#2c3848', p: '#ffea00' },
+            speeder: { y: '#ffaa00', Y: '#fff0a0', o: '#5c566c', B: '#1a6a8a', S: '#7fffff', s: '#102838', p: '#ff00aa' },
+            splitter: { o: '#6a4088', P: '#dd44ff', s: '#9048d0', B: '#503070', p: '#ff66ff' },
+        };
+
+        function drawPixelSprite(ctx, cx, cy, rows, scale, palette) {
+            const h = rows.length;
+            const w = Math.max(...rows.map(r => r.length));
+            for (let j = 0; j < h; j++) {
+                let row = rows[j];
+                while (row.length < w) row += '.';
+                for (let i = 0; i < w; i++) {
+                    const ch = row[i];
+                    if (ch === '.' || ch === ' ') continue;
+                    const col = palette[ch];
+                    if (!col) continue;
+                    ctx.fillStyle = col;
+                    const gx = Math.floor(cx + (i - w / 2) * scale);
+                    const gy = Math.floor(cy + (j - h / 2) * scale);
+                    ctx.fillRect(gx, gy, Math.ceil(scale), Math.ceil(scale));
+                }
+            }
+        }
+
+        function gunPalette(mod, accentHex) {
+            const m = mod || 'None';
+            const base = {
+                s: '#2c2c38', S: '#5a5a6e', z: '#6a5500', Z: '#ffe200',
+                l: '#00dde8', L: '#88ffff', d: '#4a0088', D: accentHex || '#ff00ff',
+            };
+            if (m === 'Shotgun') { base.S = '#cc6600'; base.s = '#442200'; }
+            else if (m === 'Cannon') { base.S = '#ff4400'; base.s = '#331100'; }
+            else if (m === 'Laser') { base.L = accentHex; base.l = accentHex; }
+            else if (m === 'Tesla') { base.Z = accentHex; }
+            else if (m === 'Multi') { base.S = accentHex; }
+            else if (m === 'Time') { base.D = accentHex; }
+            else { base.S = accentHex || base.S; }
+            return base;
+        }
+
+        function getEnemyRows(type, walkFrame) {
+            const f = walkFrame % 2;
+            if (type === 'tank') return f ? PX.botTankW1 : PX.botTank;
+            if (type === 'speeder') return f ? PX.botSpeederW1 : PX.botSpeeder;
+            if (type === 'splitter') return f ? PX.botSplitterW1 : PX.botSplitter;
+            return f ? PX.botGruntW1 : PX.botGrunt;
+        }
+
+        function enemySpriteBounds(enemyOrType) {
+            const type = typeof enemyOrType === 'string' ? enemyOrType : enemyOrType.type;
+            const wf = typeof enemyOrType === 'object' && enemyOrType.walkFrame != null ? enemyOrType.walkFrame : 0;
+            const rows = getEnemyRows(type, wf);
+            const scale = 3;
+            const w = Math.max(...rows.map(r => r.length));
+            return { rows, scale, halfW: (w * scale) / 2, halfH: (rows.length * scale) / 2 };
+        }
+
+        const ISO_K = 0.62;
+
+        function applyIsoTransform(ctx) {
+            ctx.setTransform(
+                zoom * ISO_K,
+                zoom * 0.5 * ISO_K,
+                zoom * (-ISO_K),
+                zoom * 0.5 * ISO_K,
+                panX,
+                panY
+            );
+        }
+
+        function worldToScreen(wx, wy) {
+            return {
+                x: zoom * ISO_K * (wx - wy) + panX,
+                y: zoom * 0.5 * ISO_K * (wx + wy) + panY
+            };
+        }
+
+        /** Orthogonal world coords for logic nodes, wires, and UI hit-testing (not isometric). */
+        function toWorld2D(mx, my) {
+            return { x: (mx - panX) / zoom, y: (my - panY) / zoom };
+        }
+
+        function drawIsoGroundPad(wx, wy, rx, ry) {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.34)';
+            ctx.beginPath();
+            ctx.ellipse(wx, wy + 8, rx, ry, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(0, 255, 242, 0.12)';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+        }
+
+        function drawGunInHand(screenX, screenY, angle, mod, accentHex, bob) {
+            const spec = GUN_PX[mod || 'None'] || GUN_PX.None;
+            const pal = gunPalette(mod, accentHex);
+            const gs = 2.45 * zoom;
+            const handY = -5.2 * zoom;
+            const gx = screenX + Math.cos(angle) * (15 * zoom) + Math.sin(angle) * bob * 0.25;
+            const gy = screenY + Math.sin(angle) * (12 * zoom) + bob + handY;
+            ctx.save();
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+            ctx.translate(gx, gy);
+            ctx.rotate(angle);
+            const ox = spec.grip.x * gs, oy = spec.grip.y * gs;
+            ctx.translate(-ox, -oy);
+            drawPixelSprite(ctx, 0, 0, spec.rows, gs, pal);
+            ctx.restore();
+        }
+
+        function drawOperatorBillboard(turretRef, frameTime) {
+            const mod = turretRef.s.mod || 'None';
+            const col = MOD_DATA[mod].color;
+            const scr = worldToScreen(turretRef.x, turretRef.y);
+            const idleBob = Math.sin(frameTime * 0.0022) * 1.4 * zoom;
+            const combatBob = Math.sin(frameTime * 0.009) * 1 * zoom;
+            const bob = turretRef.hostileInRange ? combatBob : idleBob;
+            const bodyRows = turretRef.hostileInRange ? PX.humanAim : PX.humanIdle;
+            const pal = { ...PAL.human, n: col, M: col, G: turretRef.hostileInRange ? col : '#7a8098' };
+            const bodyScale = 2.65 * zoom;
+            ctx.save();
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+            drawPixelSprite(ctx, scr.x, scr.y + bob, bodyRows, bodyScale, pal);
+            if (turretRef.hostileInRange && turretRef.aimTarget) {
+                const pT = worldToScreen(turretRef.aimTarget.x, turretRef.aimTarget.y);
+                const ang = Math.atan2(pT.y - (scr.y + bob), pT.x - scr.x);
+                drawGunInHand(scr.x, scr.y + bob, ang, mod, col, 0);
+            }
+            ctx.restore();
+        }
+
+        let last = 0, phase = "planning", gold = 60, gameOver = false, wave = 1;
+        let maxBaseHP = 100, baseHP = 100, hpTier = 1;
+        let zoom = 1, panX = 350, panY = 0;
+        let waveActive = false;
+        let waveTimer = 0;
+        let enemiesToSpawn = 0;
+
+        const NODE_COSTS = { Number: 2, Add: 3, Divide: 4, Multiply: 5, Shotgun: 35, Cannon: 50, Multi: 65, Time: 80, Tesla: 110, Laser: 150 };
+
+        // --- LOGIC ENGINE ---
+        function isRecursive(targetNode, sourceNode, visited = new Set()) {
+            if (!targetNode || !sourceNode) return false;
+            if (targetNode === sourceNode) return true;
+            visited.add(targetNode);
+            for (let key in targetNode.inputs) {
+                let inputNode = targetNode.inputs[key].node;
+                if (inputNode && !visited.has(inputNode) && isRecursive(inputNode, sourceNode, visited)) return true;
+            }
+            return false;
+        }
+
+        function safeEval(node, visited = new Set()) {
+            if (!node || visited.has(node)) return 0;
+            visited.add(node);
+            return node._evaluate(visited);
+        }
+
+        const getOutPort = (n) => ({ x: n.x + n.w + 6, y: n instanceof ModNode ? n.y + 20 : n.y + 30 });
+        const getInPort = (n, i) => ({ x: n.x - 6, y: n.y + 21 + i * 18 });
+
+        function wireCurveControl(x1, y1, x2, y2, biasKey, animNudge = 0) {
+            const mx = (x1 + x2) / 2, my = (y1 + y2) / 2;
+            const dx = x2 - x1, dy = y2 - y1;
+            const len = Math.hypot(dx, dy) || 1;
+            const nx = -dy / len, ny = dx / len;
+            const wobble = Math.sin(biasKey * 0.37) * 0.11 + Math.cos(biasKey * 0.21) * 0.07;
+            const sag = Math.max(0.1, 0.2 + wobble + animNudge);
+            const off = Math.min(len * sag, len * 0.45 + 40);
+            return { x: mx + nx * off, y: my + ny * off };
+        }
+
+        class BaseNode {
+            constructor(x, y) { this.x = x; this.y = y; this.inputs = {}; this.w = 130; this.h = 65; this.cost = 0; }
+            connect(port, node) {
+                if (node === this || isRecursive(this, node)) return;
+                this.inputs[port].node = node; updateStats();
+            }
+            evaluate() { return safeEval(this, new Set()); }
+            draw() {
+                ctx.fillStyle = "#100818"; ctx.strokeStyle = "rgba(0, 255, 242, 0.22)"; ctx.lineWidth = 2;
+                ctx.fillRect(this.x, this.y, this.w, this.h); ctx.strokeRect(this.x, this.y, this.w, this.h);
+                ctx.fillStyle = "#eae8ff"; ctx.font = "bold 11px monospace";
+                ctx.fillText(this.constructor.name.replace('Node', '').toUpperCase(), this.x + 10, this.y + 20);
+
+                let val = this.evaluate();
+                ctx.fillStyle = "#00fff2"; ctx.font = "12px monospace";
+                let displayVal = val;
+                if (typeof val === 'number') displayVal = Number.isInteger(val) ? val : val.toFixed(1);
+                ctx.fillText("VAL: " + displayVal, this.x + 10, this.y + 35);
+
+                let i = 0;
+                for (let k in this.inputs) {
+                    ctx.fillStyle = this.inputs[k].node ? "#ff2d6a" : "#3a3048";
+                    ctx.fillRect(this.x - 12, this.y + 15 + i * 18, 12, 12); i++;
+                }
+                if (!(this instanceof OutputNode)) {
+                    ctx.fillStyle = "#00ff88"; ctx.fillRect(this.x + this.w, this.y + 24, 12, 12);
+                }
+            }
+        }
+
+        class NumberNode extends BaseNode {
+            constructor(x, y, val) { super(x, y); this.v = val; this.cost = 2 + val; }
+            updateLabel() { this.cost = 2 + this.v; }
+            _evaluate() { return this.v; }
+            draw() {
+                super.draw();
+                ctx.fillStyle = "#333"; ctx.fillRect(this.x + 80, this.y + 38, 20, 20); ctx.fillRect(this.x + 105, this.y + 38, 20, 20);
+                ctx.fillStyle = "white"; ctx.fillText("-", this.x + 87, this.y + 52); ctx.fillText("+", this.x + 111, this.y + 52);
+                ctx.font = "10px monospace"; ctx.fillStyle = "gold"; ctx.fillText("Cost: $" + this.cost, this.x + 10, this.y + 52);
+            }
+        }
+
+        class AddNode extends BaseNode { constructor(x, y) { super(x, y); this.inputs = { a: {}, b: {} }; this.cost = 3; } _evaluate(v) { return safeEval(this.inputs.a.node, v) + safeEval(this.inputs.b.node, v); } }
+        class DivideNode extends BaseNode { constructor(x, y) { super(x, y); this.inputs = { a: {}, b: {} }; this.cost = 4; } _evaluate(v) { let a = safeEval(this.inputs.a.node, v), b = safeEval(this.inputs.b.node, v); return b === 0 ? 0 : a / b; } }
+        class MultiplyNode extends BaseNode { constructor(x, y) { super(x, y); this.inputs = { a: {}, b: {} }; this.cost = 5; } _evaluate(v) { return safeEval(this.inputs.a.node, v) * safeEval(this.inputs.b.node, v); } }
+
+        class OutputNode extends BaseNode {
+            constructor(x, y, label) { super(x, y); this.label = label; this.inputs = { in: {} }; }
+            draw() { super.draw(); ctx.fillStyle = "#aaa"; ctx.fillText(this.label, this.x + 10, this.y + 55); }
+            _evaluate(v) {
+                let val = safeEval(this.inputs.in.node, v);
+                return val !== undefined ? val : 0;
+            }
+        }
+
+        class ModNode extends BaseNode {
+            constructor(x, y, modType) {
+                super(x, y);
+                this.modType = modType;
+                this.cost = NODE_COSTS[modType];
+                this.w = 130;
+                this.h = 40;
+            }
+            _evaluate() { return this.modType; }
+            draw() {
+                let col = MOD_DATA[this.modType].color;
+                ctx.fillStyle = "#100818"; ctx.strokeStyle = col; ctx.lineWidth = 2;
+                ctx.fillRect(this.x, this.y, this.w, this.h); ctx.strokeRect(this.x, this.y, this.w, this.h);
+                ctx.fillStyle = col; ctx.font = "bold 11px monospace";
+                ctx.fillText("MOD: " + this.modType.toUpperCase(), this.x + 32, this.y + 24);
+                ctx.fillStyle = "#00ff88"; ctx.fillRect(this.x + this.w, this.y + 14, 12, 12);
+
+                ctx.save();
+                ctx.translate(this.x + 16, this.y + 20);
+                ctx.strokeStyle = col; ctx.fillStyle = col; ctx.lineWidth = 2;
+                ctx.beginPath();
+                if (this.modType === 'Shotgun') {
+                    for (let i = 0; i < 3; i++) { ctx.moveTo(0, 0); ctx.lineTo(8 * Math.cos(-0.6 + i * 0.6), 8 * Math.sin(-0.6 + i * 0.6)); } ctx.stroke();
+                } else if (this.modType === 'Cannon') {
+                    ctx.arc(0, 0, 5, 0, Math.PI * 2); ctx.fill();
+                } else if (this.modType === 'Laser') {
+                    ctx.fillRect(-8, -2, 16, 4);
+                } else if (this.modType === 'Tesla') {
+                    ctx.moveTo(-5, -7); ctx.lineTo(2, -2); ctx.lineTo(-2, 2); ctx.lineTo(5, 7); ctx.stroke();
+                } else if (this.modType === 'Multi') {
+                    ctx.arc(0, -4, 2.5, 0, Math.PI * 2); ctx.fill(); ctx.beginPath(); ctx.arc(-4, 4, 2.5, 0, Math.PI * 2); ctx.fill(); ctx.beginPath(); ctx.arc(4, 4, 2.5, 0, Math.PI * 2); ctx.fill();
+                } else if (this.modType === 'Time') {
+                    ctx.moveTo(-6, -6); ctx.lineTo(6, -6); ctx.lineTo(-6, 6); ctx.lineTo(6, 6); ctx.closePath(); ctx.stroke();
+                }
+                ctx.restore();
+            }
+        }
+
+        // --- COMBAT SYSTEM ---
+        function damageEnemy(e, dmg, type) {
+            let isEnergy = type === 'Laser' || type === 'Tesla';
+            if (e.shieldHp > 0) {
+                let sDmg = isEnergy ? dmg : dmg * 0.1;
+                if (e.shieldHp >= sDmg) {
+                    e.shieldHp -= sDmg;
+                } else {
+                    let spill = sDmg - e.shieldHp;
+                    e.shieldHp = 0;
+                    e.hp -= isEnergy ? spill : spill * 10;
+                }
+            } else {
+                e.hp -= dmg;
+            }
+        }
+
+        class Enemy {
+            constructor() {
+                this.active = false; this.slowTimer = 0; this.shieldTier = 0; this.shieldHp = 0; this.type = 'normal';
+                this.walkPhase = 0; this.walkFrame = 0;
+            }
+            spawn(x, y, hp, spd, type = 'normal') {
+                this.x = x; this.y = y; this.type = type;
+                if (type === 'tank') { hp *= 3.0; spd *= 0.4; }
+                else if (type === 'speeder') { hp *= 0.5; spd *= 1.8; }
+
+                this.hp = hp; this.maxHp = hp; this.spd = spd;
+                this.active = true; this.slowTimer = 0;
+                this.shieldTier = 0; this.shieldHp = 0;
+                this.walkPhase = Math.random() * Math.PI * 2;
+                this.walkFrame = 0;
+            }
+            update(dt) {
+                if (!this.active) return;
+                let speedMult = this.slowTimer > 0 ? 0.3 : 1;
+                this.slowTimer -= dt;
+                let dx = 600 - this.x, dy = 400 - this.y, dist = Math.hypot(dx, dy);
+                if (dist > 0.5) {
+                    this.x += dx / dist * this.spd * speedMult * dt;
+                    this.y += dy / dist * this.spd * speedMult * dt;
+                }
+                let stepRate = dist > 18 ? 0.018 : 0.0055;
+                this.walkPhase += this.spd * speedMult * dt * stepRate;
+                this.walkFrame = Math.floor(this.walkPhase * 2) % 2;
+
+                if (dist < 25) {
+                    this.active = false;
+                    if (!gameOver) {
+                        baseHP -= (this.type === 'tank' ? 30 : this.type === 'speeder' ? 5 : 10); updateUI();
+                        if (baseHP <= 0) { gameOver = true; document.getElementById("overlay").classList.add("active"); }
+                    }
+                }
+            }
+            draw() {
+                if (!this.active) return;
+                const { rows, scale, halfW, halfH } = enemySpriteBounds(this);
+                const palKey = this.type === 'tank' ? 'tank' : this.type === 'speeder' ? 'speeder' : this.type === 'splitter' ? 'splitter' : 'grunt';
+                const palette = { ...PAL[palKey] };
+                const bob = Math.sin(this.walkPhase * Math.PI * 2) * 2.4 * zoom;
+                const sway = Math.cos(this.walkPhase * Math.PI * 2 * 0.97) * 1.1 * zoom;
+                const scr = worldToScreen(this.x, this.y);
+                const scrX = scr.x + sway * 0.15;
+                const scrY = scr.y + bob;
+                const pix = scale * zoom;
+                const shW = halfW * zoom;
+                const shH = halfH * zoom;
+                const top = scrY - shH;
+
+                ctx.save();
+                ctx.setTransform(1, 0, 0, 1, 0, 0);
+                if (this.slowTimer > 0) {
+                    ctx.filter = 'saturate(1.35) hue-rotate(160deg) brightness(1.12)';
+                }
+                drawPixelSprite(ctx, scrX, scrY, rows, pix, palette);
+                ctx.filter = 'none';
+
+                if (this.shieldHp > 0) {
+                    let sColors = ["#00fff2", "#4488ff", "#ff44ff"];
+                    ctx.strokeStyle = sColors[this.shieldTier - 1] || "#00fff2";
+                    ctx.lineWidth = 1 + this.shieldTier;
+                    ctx.strokeRect(scrX - shW - 4, top - 4, shW * 2 + 8, shH * 2 + 8);
+                }
+                ctx.fillStyle = "#300018";
+                ctx.fillRect(scrX - 10, top - 7, 20, 4);
+                ctx.fillStyle = "#00ff88";
+                ctx.fillRect(scrX - 10, top - 7, Math.max(0, (this.hp / this.maxHp) * 20), 4);
+
+                if (this.shieldHp > 0) {
+                    let maxS = this.shieldTier * this.maxHp * 0.5;
+                    ctx.fillStyle = "#00fff2";
+                    ctx.fillRect(scrX - 10, top - 10, Math.max(0, Math.min(1, this.shieldHp / maxS)) * 20, 2);
+                }
+                ctx.restore();
+            }
+        }
+
+        class Bullet {
+            constructor(x, y, targetX, targetY, dmg, range, type, color, sourceMod) {
+                this.startX = x; this.startY = y; this.x = x; this.y = y; this.dmg = dmg; this.range = range;
+                this.type = type; this.color = color; this.active = true;
+                this.sourceMod = sourceMod;
+                this.speed = type === 'cannon' ? 300 : 750;
+                let dx = targetX - x, dy = targetY - y, dist = Math.hypot(dx, dy);
+                this.vx = (dx / dist) * this.speed; this.vy = (dy / dist) * this.speed;
+                this.pierced = [];
+            }
+            update(dt, enemies) {
+                if (!this.active) return;
+                this.x += this.vx * dt; this.y += this.vy * dt;
+                if (Math.hypot(this.x - this.startX, this.y - this.startY) > this.range) {
+                    if (this.type === 'cannon') explosions.push({ x: this.x, y: this.y, radius: 70, life: 0.3, maxLife: 0.3, color: this.color });
+                    this.active = false; return;
+                }
+
+                for (let e of enemies) {
+                    if (e.active && Math.hypot(this.x - e.x, this.y - e.y) < 20) {
+                        if (this.type === 'cannon') {
+                            enemies.forEach(en => {
+                                if (en.active && Math.hypot(this.x - en.x, this.y - en.y) < 70) {
+                                    damageEnemy(en, this.dmg, this.sourceMod);
+                                }
+                            });
+                            explosions.push({ x: this.x, y: this.y, radius: 70, life: 0.3, maxLife: 0.3, color: this.color });
+                            this.active = false; break;
+                        } else {
+                            damageEnemy(e, this.dmg, this.sourceMod);
+                            this.active = false; break;
+                        }
+                    }
+                }
+            }
+            draw() {
+                ctx.fillStyle = this.color;
+                let sz = this.type === 'cannon' ? 8 : 4;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, sz, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.shadowBlur = 10; ctx.shadowColor = this.color;
+                ctx.fill(); ctx.shadowBlur = 0;
+            }
+        }
+
+        class Turret {
+            constructor() {
+                this.x = 600; this.y = 400; this.cool = 0;
+                this.s = { damage: 5, rpm: 60, range: 200, mod: null }; this.fx = [];
+                this.hostileInRange = false; this.aimTarget = null;
+            }
+            apply(s) { this.s = s; this.rate = 60 / (s.rpm || 1); }
+            update(dt, enemies) {
+                this.cool -= dt;
+                this.fx = this.fx.filter(f => f.life > 0);
+                this.fx.forEach(f => f.life -= dt);
+
+                let targets = enemies.filter(e => e.active && Math.hypot(e.x - this.x, e.y - this.y) < this.s.range);
+                this.hostileInRange = targets.length > 0;
+                this.aimTarget = targets.length ? targets[0] : null;
+                if (targets.length === 0) return;
+                targets.sort((a, b) => Math.hypot(a.x - this.x, a.y - this.y) - Math.hypot(b.x - this.x, b.y - this.y));
+
+                if (this.cool <= 0) {
+                    const m = this.s.mod;
+                    const col = MOD_DATA[m || 'None'].color;
+                    if (m === 'Shotgun') {
+                        for (let i = 0; i < 8; i++) {
+                            let tx = targets[0].x + (Math.random() - 0.5) * 180;
+                            let ty = targets[0].y + (Math.random() - 0.5) * 180;
+                            bullets.push(new Bullet(this.x, this.y, tx, ty, this.s.damage, this.s.range, 'normal', col, m));
+                        }
+                    } else if (m === 'Multi') {
+                        targets.slice(0, 3).forEach(t => bullets.push(new Bullet(this.x, this.y, t.x, t.y, this.s.damage, this.s.range, 'normal', col, m)));
+                    } else if (m === 'Laser') {
+                        let tgt = targets[0];
+                        let dx = tgt.x - this.x, dy = tgt.y - this.y;
+                        let dist = Math.hypot(dx, dy);
+                        let dirX = dx / dist, dirY = dy / dist;
+                        let endX = this.x + dirX * this.s.range;
+                        let endY = this.y + dirY * this.s.range;
+                        enemies.forEach(en => {
+                            if (en.active) {
+                                let lx = endX - this.x, ly = endY - this.y;
+                                let len2 = lx * lx + ly * ly;
+                                let t = Math.max(0, Math.min(1, ((en.x - this.x) * lx + (en.y - this.y) * ly) / len2));
+                                let projX = this.x + t * lx;
+                                let projY = this.y + t * ly;
+                                if (Math.hypot(en.x - projX, en.y - projY) < 25) {
+                                    damageEnemy(en, this.s.damage, m);
+                                }
+                            }
+                        });
+                        this.fx.push({ x1: this.x, y1: this.y, x2: endX, y2: endY, life: 0.15, color: col, ray: true });
+                    } else if (m === 'Tesla' || m === 'Time') {
+                        targets.slice(0, 10).forEach(e => {
+                            if (m === 'Tesla') damageEnemy(e, this.s.damage, m);
+                            if (m === 'Time') e.slowTimer = 0.5;
+                            this.fx.push({ x1: this.x, y1: this.y, x2: e.x, y2: e.y, life: 0.1, color: col, bolt: m === 'Tesla' });
+                        });
+                    } else {
+                        bullets.push(new Bullet(this.x, this.y, targets[0].x, targets[0].y, this.s.damage, this.s.range, m === 'Cannon' ? 'cannon' : 'normal', col, m));
+                    }
+                    this.cool = this.rate;
+                }
+            }
+            draw() {
+                const col = MOD_DATA[this.s.mod || 'None'].color;
+
+                // Range & base ring (integrity arc)
+                ctx.strokeStyle = col; ctx.globalAlpha = 0.14; ctx.lineWidth = 1; ctx.beginPath();
+                ctx.arc(this.x, this.y, this.s.range, 0, Math.PI * 2); ctx.stroke(); ctx.globalAlpha = 1.0;
+
+                ctx.lineWidth = 3; ctx.strokeStyle = "rgba(255, 0, 234, 0.45)"; ctx.beginPath();
+                ctx.arc(this.x, this.y, 26, 0, Math.PI * 2); ctx.stroke();
+
+                ctx.lineWidth = 4; ctx.strokeStyle = "#1a1228"; ctx.beginPath();
+                ctx.arc(this.x, this.y, 26, 0, Math.PI * 2); ctx.stroke();
+
+                ctx.strokeStyle = "#ff0066"; ctx.beginPath();
+                ctx.arc(this.x, this.y, 26, -Math.PI / 2, (-Math.PI / 2) + (Math.PI * 2 * (Math.max(0, baseHP / maxBaseHP))));
+                ctx.stroke();
+
+                // Operator + gun drawn in billboard pass (2.5D)
+
+                // Visual Effects
+                this.fx.forEach(f => {
+                    ctx.beginPath();
+                    ctx.moveTo(f.x1, f.y1);
+                    if (f.ray) {
+                        ctx.lineWidth = 6; ctx.strokeStyle = f.color;
+                        ctx.lineTo(f.x2, f.y2); ctx.stroke();
+                        ctx.beginPath(); ctx.moveTo(f.x1, f.y1);
+                        ctx.lineWidth = 2; ctx.strokeStyle = 'white';
+                        ctx.lineTo(f.x2, f.y2); ctx.stroke();
+                    } else {
+                        ctx.strokeStyle = f.color;
+                        ctx.lineWidth = f.bolt ? 2 : 4;
+                        if (f.bolt) {
+                            let dx = f.x2 - f.x1, dy = f.y2 - f.y1, dist = Math.hypot(dx, dy);
+                            let steps = 4;
+                            for (let i = 1; i <= steps; i++) {
+                                ctx.lineTo(f.x1 + dx * (i / steps) + (Math.random() - 0.5) * 20, f.y1 + dy * (i / steps) + (Math.random() - 0.5) * 20);
+                            }
+                        }
+                        ctx.lineTo(f.x2, f.y2);
+                        ctx.stroke();
+                    }
+                });
+            }
+        }
+
+        // --- INITIALIZATION ---
+        let nodes = [], connections = [], bullets = [], enemies = [], explosions = [];
+        const turret = new Turret();
+
+        const damageOut = new OutputNode(850, 50, "PWR_DMG");
+        const rpmOut = new OutputNode(850, 150, "PWR_RPM");
+        const rangeOut = new OutputNode(850, 250, "PWR_RNG");
+        const modOut = new OutputNode(850, 350, "PWR_MOD");
+        nodes.push(damageOut, rpmOut, rangeOut, modOut);
+
+        function updateStats() {
+            let activeMod = modOut.evaluate();
+            if (typeof activeMod === 'number') activeMod = "None";
+
+            const s = {
+                damage: (damageOut.evaluate() || 5),
+                rpm: Math.min(rpmOut.evaluate() || 60, 600),
+                range: Math.min(rangeOut.evaluate() || 200, 1500),
+                mod: (activeMod && activeMod !== 0) ? activeMod : null
+            };
+
+            if (s.mod === 'Shotgun') {
+                s.rpm *= 0.4;
+                s.range *= 0.4;
+                s.damage *= 1.5;
+            } else if (s.mod === 'Cannon') {
+                s.rpm *= 0.15;
+                s.damage *= 4.0;
+                s.range *= 1.2;
+            } else if (s.mod === 'Laser') {
+                s.rpm *= 0.1;
+                s.damage *= 10.0;
+                s.range *= 2.5;
+            } else if (s.mod === 'Tesla') {
+                s.damage *= 0.1;
+                s.rpm *= 3.0;
+                s.range *= 0.8;
+            } else if (s.mod === 'Multi') {
+                s.damage *= 0.5;
+                s.rpm *= 1.5;
+            } else if (s.mod === 'Time') {
+                s.damage = 0;
+                s.range *= 1.5;
+                s.rpm *= 2.0;
+            }
+
+            document.getElementById('dmg').innerText = Math.round(s.damage);
+            document.getElementById('rpm').innerText = Math.round(s.rpm);
+            document.getElementById('range').innerText = Math.round(s.range);
+            document.getElementById('mod-active').innerText = s.mod || "None";
+            document.getElementById('mod-active').style.color = MOD_DATA[s.mod || 'None'].color;
+            turret.apply(s);
+        }
+
+        function buyNode(type) {
+            let cost = NODE_COSTS[type] || 2;
+            if (gold < cost) return;
+            gold -= cost; updateUI();
+            const w = toWorld2D((canvas.width / 2) + Math.random() * 150 - 75, 150 + Math.random() * 200);
+            let n;
+            if (['Shotgun', 'Cannon', 'Laser', 'Tesla', 'Multi', 'Time'].includes(type)) {
+                n = new ModNode(w.x, w.y, type);
+            } else {
+                n = type === 'Number' ? new NumberNode(w.x, w.y, 0) :
+                    type === 'Add' ? new AddNode(w.x, w.y) :
+                        type === 'Divide' ? new DivideNode(w.x, w.y) : new MultiplyNode(w.x, w.y);
+            }
+            nodes.push(n);
+        }
+
+        function upgradeHealth() {
+            if (hpTier >= 10 || gameOver) return;
+            let cost = hpTier * 5;
+            if (gold >= cost) { gold -= cost; hpTier++; maxBaseHP += 50; baseHP += 50; updateUI(); }
+        }
+
+        function repairTurret() {
+            if (gold >= 20 && baseHP < maxBaseHP) { gold -= 20; baseHP = maxBaseHP; updateUI(); }
+        }
+
+        function updateUI() {
+            document.getElementById('gold').innerText = Math.floor(gold);
+            document.getElementById('hp-val').innerText = Math.ceil(baseHP);
+            document.getElementById('hp-max').innerText = maxBaseHP;
+            document.getElementById('wave-val').innerText = wave;
+            let upBtn = document.getElementById('btn-hp-upgrade');
+            if (hpTier >= 10) upBtn.disabled = true;
+            else { document.getElementById('hp-tier').innerText = hpTier; document.getElementById('hp-cost').innerText = hpTier * 5; }
+        }
+
+        function spawnWave() {
+            if (waveActive || gameOver) return;
+            waveActive = true;
+            if (wave > 30) {
+                gameOver = true;
+                document.getElementById("overlay").innerHTML = "<h1>SYSTEM SECURE</h1><p>You have survived all 30 waves!</p><button onclick='restartGame()' style='padding: 15px 30px; font-size: 20px; border: 2px solid white; background: transparent; color: white;'>REBOOT SYSTEM</button>";
+                document.getElementById("overlay").classList.add("active");
+                return;
+            }
+            let count = 10 + Math.floor(wave * 4.5);
+            enemiesToSpawn = count;
+            for (let i = 0; i < count; i++) {
+                setTimeout(() => {
+                    if (!waveActive || gameOver) return;
+                    enemiesToSpawn--;
+                    let e = new Enemy();
+                    let ang = Math.random() * Math.PI * 2;
+                    let r = Math.random();
+
+                    let tankProb = wave > 3 ? Math.min(0.4, (wave - 3) * 0.02) : 0;
+                    let speedProb = wave > 5 ? Math.min(0.4, (wave - 5) * 0.03) : 0;
+                    let splitProb = wave > 10 ? Math.min(0.35, (wave - 10) * 0.025) : 0;
+
+                    let type = 'normal';
+                    if (r < tankProb) type = 'tank';
+                    else if (r < tankProb + speedProb) type = 'speeder';
+                    else if (r < tankProb + speedProb + splitProb) type = 'splitter';
+
+                    let baseHp = 30 + wave * 15 + 15 * Math.pow(1.35, wave);
+                    let baseSpd = 60 + wave * 6;
+                    e.spawn(600 + Math.cos(ang) * 900, 400 + Math.sin(ang) * 900, baseHp, baseSpd, type);
+
+                    // Shield probability heavily ramps up, starting at Wave 5
+                    if (wave > 4 && Math.random() < Math.min(0.95, (wave - 4) * 0.05)) {
+                        let tR = Math.random();
+                        e.shieldTier = wave > 20 && tR < 0.3 ? 3 : wave > 12 && tR < 0.6 ? 2 : 1;
+                        e.shieldHp = e.shieldTier * e.maxHp * 0.5;
+                    }
+
+                    enemies.push(e);
+                }, i * Math.max(40, 450 - wave * 15));
+            }
+            wave++;
+        }
+
+        function setPhase(p) {
+            phase = p;
+            if (p === 'action') {
+                if (!waveActive) {
+                    waveTimer = 0;
+                    document.getElementById('wave-val').innerText = wave;
+                    spawnWave();
+                }
+            }
+        }
+
+        // --- CONTROLS ---
+        let dragNode = null, panning = false, activeWire = null, lastMouse = { x: 0, y: 0 };
+        canvas.onmousedown = e => {
+            if (gameOver) return;
+            const world = toWorld2D(e.offsetX, e.offsetY);
+            if (e.button === 1) { panning = true; return; }
+            for (let n of nodes) {
+                if (n instanceof NumberNode) {
+                    if (world.x > n.x + 80 && world.x < n.x + 100 && world.y > n.y + 38 && world.y < n.y + 58) {
+                        if (n.v > 0) { gold += 1; n.v--; n.updateLabel(); updateUI(); updateStats(); } return;
+                    }
+                    if (world.x > n.x + 105 && world.x < n.x + 125 && world.y > n.y + 38 && world.y < n.y + 58) {
+                        if (gold >= 1) { gold -= 1; n.v++; n.updateLabel(); updateUI(); updateStats(); } return;
+                    }
+                }
+                if (!(n instanceof OutputNode)) {
+                    let outP = getOutPort(n);
+                    if (Math.hypot(world.x - outP.x, world.y - outP.y) < 15) {
+                        activeWire = { fromNode: n, type: 'out' }; return;
+                    }
+                }
+                let i = 0;
+                for (let k in n.inputs) {
+                    let inP = getInPort(n, i);
+                    if (Math.hypot(world.x - inP.x, world.y - inP.y) < 15) {
+                        activeWire = { fromNode: n, fromPort: k, type: 'in' }; return;
+                    }
+                    i++;
+                }
+                if (world.x > n.x && world.x < n.x + n.w && world.y > n.y && world.y < n.y + n.h) { dragNode = n; return; }
+            }
+        };
+
+        canvas.onmouseup = e => {
+            const world = toWorld2D(e.offsetX, e.offsetY);
+            if (activeWire) {
+                let connected = false;
+                for (let n of nodes) {
+                    if (activeWire.type === 'out') {
+                        let i = 0;
+                        for (let k in n.inputs) {
+                            let inP = getInPort(n, i);
+                            if (Math.hypot(world.x - inP.x, world.y - inP.y) < 20) {
+                                let oldNode = n.inputs[k].node;
+                                n.connect(k, activeWire.fromNode);
+                                if (n.inputs[k].node !== oldNode || oldNode === null) {
+                                    connections = connections.filter(c => !(c.to === n && c.port === k));
+                                    connections.push({ from: activeWire.fromNode, to: n, port: k });
+                                }
+                                connected = true; break;
+                            }
+                            i++;
+                        }
+                    } else {
+                        if (!(n instanceof OutputNode)) {
+                            let outP = getOutPort(n);
+                            if (Math.hypot(world.x - outP.x, world.y - outP.y) < 20) {
+                                let oldNode = activeWire.fromNode.inputs[activeWire.fromPort].node;
+                                activeWire.fromNode.connect(activeWire.fromPort, n);
+                                if (activeWire.fromNode.inputs[activeWire.fromPort].node !== oldNode || oldNode === null) {
+                                    connections = connections.filter(c => !(c.to === activeWire.fromNode && c.port === activeWire.fromPort));
+                                    connections.push({ from: n, to: activeWire.fromNode, port: activeWire.fromPort });
+                                }
+                                connected = true; break;
+                            }
+                        }
+                    }
+                    if (connected) break;
+                }
+            }
+            dragNode = null; activeWire = null; panning = false; updateStats();
+        };
+
+        canvas.oncontextmenu = e => {
+            e.preventDefault();
+            const world = toWorld2D(e.offsetX, e.offsetY);
+            for (let i = nodes.length - 1; i >= 0; i--) {
+                let n = nodes[i];
+                let pi = 0;
+                for (let k in n.inputs) {
+                    let inP = getInPort(n, pi);
+                    if (Math.hypot(world.x - inP.x, world.y - inP.y) < 15) {
+                        n.inputs[k].node = null;
+                        connections = connections.filter(c => !(c.to === n && c.port === k));
+                        updateStats(); return;
+                    }
+                    pi++;
+                }
+                if (world.x > n.x && world.x < n.x + n.w && world.y > n.y && world.y < n.y + n.h && n.label === undefined) {
+                    gold += n.cost; updateUI();
+                    connections = connections.filter(c => c.from !== n && c.to !== n);
+                    nodes.forEach(o => { for (let k in o.inputs) if (o.inputs[k].node === n) o.inputs[k].node = null; });
+                    nodes.splice(i, 1); updateStats(); return;
+                }
+            }
+        };
+
+        canvas.onmousemove = e => {
+            if (dragNode) {
+                dragNode.x += e.movementX / zoom;
+                dragNode.y += e.movementY / zoom;
+            }
+            if (panning) { panX += e.movementX; panY += e.movementY; }
+            lastMouse = { x: e.offsetX, y: e.offsetY };
+        };
+
+        canvas.onwheel = e => {
+            const d = e.deltaY > 0 ? 0.9 : 1.1;
+            const wb = toWorld2D(e.offsetX, e.offsetY);
+            const newZoom = Math.min(Math.max(zoom * d, 0.1), 5);
+            zoom = newZoom;
+            panX = e.offsetX - wb.x * zoom;
+            panY = e.offsetY - wb.y * zoom;
+        };
+
+        function loop(t) {
+            let dt = (t - last) / 1000; last = t;
+            ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            if (phase === 'action' && !gameOver) {
+                turret.update(dt, enemies);
+                for (let e of enemies) {
+                    if (e.hp <= 0 && e.active) {
+                        e.active = false;
+                        gold += e.type === 'tank' ? 12 : e.type === 'splitter' ? 6 : e.type === 'speeder' ? 2 : 4;
+                        if (e.type === 'splitter') {
+                            for (let i = 0; i < 3; i++) {
+                                let se = new Enemy();
+                                let sx = e.x + (Math.random() - 0.5) * 30;
+                                let sy = e.y + (Math.random() - 0.5) * 30;
+                                se.spawn(sx, sy, e.maxHp * 0.4, Math.max(e.spd, 70), 'speeder');
+                                enemies.push(se);
+                            }
+                        }
+                        updateUI();
+                    }
+                    e.update(dt);
+                }
+                bullets.forEach(b => b.update(dt, enemies));
+                bullets = bullets.filter(b => b.active);
+
+                if (waveActive && enemiesToSpawn <= 0 && enemies.filter(e => e.active).length === 0) {
+                    waveActive = false;
+                    waveTimer = 10;
+                }
+                if (!waveActive && waveTimer > 0) {
+                    waveTimer -= dt;
+                    document.getElementById('wave-val').innerText = `${wave} (Next in ${Math.ceil(waveTimer)}s)`;
+                    if (waveTimer <= 0) {
+                        document.getElementById('wave-val').innerText = wave;
+                        spawnWave();
+                    }
+                }
+            } else {
+                turret.hostileInRange = false;
+                turret.aimTarget = null;
+            }
+
+            applyIsoTransform(ctx);
+
+            // Neon city grid (2.5D floor)
+            ctx.lineWidth = 1;
+            for (let i = -2000; i < 4000; i += 200) {
+                ctx.strokeStyle = (i % 400 === 0) ? "rgba(255, 0, 234, 0.085)" : "rgba(0, 255, 242, 0.045)";
+                ctx.beginPath(); ctx.moveTo(i, -2000); ctx.lineTo(i, 4000); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(-2000, i); ctx.lineTo(4000, i); ctx.stroke();
+            }
+
+            let pads = [];
+            enemies.forEach(e => {
+                if (e.active) {
+                    let rx = e.type === 'tank' ? 40 : e.type === 'speeder' ? 17 : e.type === 'splitter' ? 24 : 22;
+                    pads.push({ z: e.x + e.y, wx: e.x, wy: e.y, rx, ry: 9 });
+                }
+            });
+            pads.push({ z: turret.x + turret.y, wx: turret.x, wy: turret.y, rx: 28, ry: 10 });
+            pads.sort((a, b) => a.z - b.z);
+            pads.forEach(p => drawIsoGroundPad(p.wx, p.wy, p.rx, p.ry));
+
+            turret.draw();
+            bullets.forEach(b => b.draw());
+
+            explosions = explosions.filter(ex => ex.life > 0);
+            explosions.forEach(ex => {
+                ex.life -= dt;
+                let pct = (ex.life / ex.maxLife);
+                ctx.beginPath();
+                ctx.arc(ex.x, ex.y, ex.radius * (1 - pct * pct), 0, Math.PI * 2);
+                ctx.fillStyle = ex.color;
+                ctx.globalAlpha = pct * 0.8;
+                ctx.fill();
+                ctx.globalAlpha = 1.0;
+            });
+
+            // Logic graph: flat 2D (orthogonal pan/zoom), not isometric
+            ctx.setTransform(zoom, 0, 0, zoom, panX, panY);
+            connections.forEach(c => {
+                let i = Object.keys(c.to.inputs).indexOf(c.port);
+                let outP = getOutPort(c.from);
+                let inP = getInPort(c.to, i);
+                const bias = c.from.x + c.from.y * 1.71 + c.to.x * 2.09 + i * 47 + (c.port.charCodeAt(0) || 0) * 2.3;
+                const cp = wireCurveControl(outP.x, outP.y, inP.x, inP.y, bias);
+                ctx.beginPath();
+                ctx.moveTo(outP.x, outP.y);
+                ctx.quadraticCurveTo(cp.x, cp.y, inP.x, inP.y);
+                ctx.strokeStyle = isRecursive(c.to, c.from) ? "#f22" : (c.from instanceof ModNode ? MOD_DATA[c.from.modType].color : "#0af");
+                ctx.lineWidth = 2 / zoom; ctx.stroke();
+            });
+
+            if (activeWire) {
+                const w = toWorld2D(lastMouse.x, lastMouse.y);
+                let x1, y1;
+                if (activeWire.type === 'out') {
+                    let outP = getOutPort(activeWire.fromNode);
+                    x1 = outP.x; y1 = outP.y;
+                } else {
+                    let i = Object.keys(activeWire.fromNode.inputs).indexOf(activeWire.fromPort);
+                    let inP = getInPort(activeWire.fromNode, i);
+                    x1 = inP.x; y1 = inP.y;
+                }
+                const liveBias = x1 * 0.13 + y1 * 0.09 + lastMouse.x + lastMouse.y * 0.97;
+                const breathe = Math.sin(t * 0.0035) * 0.05;
+                const cp = wireCurveControl(x1, y1, w.x, w.y, liveBias, breathe);
+                ctx.beginPath();
+                ctx.moveTo(x1, y1);
+                ctx.quadraticCurveTo(cp.x, cp.y, w.x, w.y);
+                ctx.strokeStyle = "#fff"; ctx.setLineDash([5, 5]); ctx.lineWidth = 2 / zoom; ctx.stroke(); ctx.setLineDash([]);
+            }
+
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+            let billboards = [];
+            enemies.forEach(e => { if (e.active) billboards.push({ z: e.x + e.y, draw: () => e.draw() }); });
+            billboards.push({ z: turret.x + turret.y, draw: () => drawOperatorBillboard(turret, t) });
+            billboards.sort((a, b) => a.z - b.z);
+            billboards.forEach(b => b.draw());
+
+            ctx.setTransform(zoom, 0, 0, zoom, panX, panY);
+            nodes.forEach(n => n.draw());
+            requestAnimationFrame(loop);
+        }
+
+        function restartGame() { location.reload(); }
+        updateUI(); updateStats();
+        requestAnimationFrame(loop);
+        window.onresize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; };
+    </script>
+</body>
+
+</html>
